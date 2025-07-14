@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Curricular Derecho</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0d1421 0%, #1a2332 50%, #2a3441 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(34, 197, 94, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #22c55e;
+        }
+
+        .malla-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .semestre {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .semestre h2 {
+            color: #22c55e;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-align: center;
+            border-bottom: 2px solid rgba(34, 197, 94, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .materia {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid #475569;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .materia::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .materia:hover::before {
+            left: 100%;
+        }
+
+        .materia:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
+        }
+
+        .materia.disponible {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            cursor: pointer;
+        }
+
+        .materia.disponible:hover {
+            background: rgba(34, 197, 94, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .materia.aprobada {
+            border-color: #16a34a;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.6));
+            color: white;
+        }
+
+        .materia.aprobada::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 20px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .materia.bloqueada {
+            border-color: #64748b;
+            background: rgba(51, 65, 85, 0.5);
+            color: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .materia-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .materia-codigo {
+            font-size: 0.9em;
+            opacity: 0.8;
+            background: rgba(34, 197, 94, 0.2);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .materia-creditos {
+            font-size: 0.9em;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 2px 8px;
+            border-radius: 5px;
+            color: #60a5fa;
+        }
+
+        .materia-nombre {
+            font-weight: bold;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .materia-requisitos {
+            font-size: 0.8em;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid;
+        }
+
+        .legend-disponible {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: #22c55e;
+        }
+
+        .legend-aprobada {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.6));
+            border-color: #16a34a;
+        }
+
+        .legend-bloqueada {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: #64748b;
+        }
+
+        .reset-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .malla-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats {
+                gap: 15px;
+            }
+            
+            .legend {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="reset-btn" onclick="resetProgress()">🔄 Reiniciar</button>
+    
+    <div class="header">
+        <h1>Malla Curricular - Derecho</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="aprobadas">0</div>
+                <div>Aprobadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="disponibles">0</div>
+                <div>Disponibles</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="bloqueadas">0</div>
+                <div>Bloqueadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="creditos">0</div>
+                <div>Créditos</div>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+    </div>
+
+    <div class="malla-container" id="mallaContainer">
+        <!-- Las materias se generarán dinámicamente -->
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color legend-disponible"></div>
+            <span>Disponible</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-aprobada"></div>
+            <span>Aprobada</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-bloqueada"></div>
+            <span>Bloqueada</span>
+        </div>
+    </div>
+
+    <script>
+        // Datos de las materias con sus prerrequisitos
+        const materias = {
+            // PRIMER SEMESTRE
+            '65111': { nombre: 'Derecho Civil Personas', creditos: 3, requisitos: [], semestre: 1 },
+            '65112': { nombre: 'Derecho Romano', creditos: 2, requisitos: [], semestre: 1 },
+            '65110': { nombre: 'Introducción Al Derecho', creditos: 3, requisitos: [], semestre: 1 },
+            '65164': { nombre: 'Lectura Y Escritura Critica', creditos: 2, requisitos: [], semestre: 1 },
+            '52150': { nombre: 'Historia De Las Doctrinas Económicas', creditos: 2, requisitos: [], semestre: 1 },
+            '63130': { nombre: 'Metodología I', creditos: 2, requisitos: [], semestre: 1 },
+            '63131': { nombre: 'Sociología', creditos: 2, requisitos: [], semestre: 1 },
+
+            // SEGUNDO SEMESTRE
+            '65114': { nombre: 'Derecho Constitucional General', creditos: 3, requisitos: [], semestre: 2 },
+            '65115': { nombre: 'Teoría de los Derechos Reales', creditos: 3, requisitos: ['65111'], semestre: 2 },
+            '65113': { nombre: 'Teoría del Derecho', creditos: 2, requisitos: ['65110'], semestre: 2 },
+            '52151': { nombre: 'Economía Política', creditos: 2, requisitos: [], semestre: 2 },
+            '60170': { nombre: 'Lógica', creditos: 2, requisitos: [], semestre: 2 },
+            '63132': { nombre: 'Metodología II', creditos: 2, requisitos: ['63130'], semestre: 2 },
+
+            // TERCER SEMESTRE
+            '65116': { nombre: 'Derecho Civil Obligaciones I', creditos: 2, requisitos: ['65115'], semestre: 3 },
+            '65118': { nombre: 'Derecho Comercial General', creditos: 2, requisitos: ['65115'], semestre: 3 },
+            '65117': { nombre: 'Derecho Constitucional Colombiano I', creditos: 2, requisitos: ['65114'], semestre: 3 },
+            '65120': { nombre: 'Derecho Penal General I', creditos: 2, requisitos: [], semestre: 3 },
+            '65121': { nombre: 'Seminario Técnicas de Análisis Sociojurídicas', creditos: 2, requisitos: [], semestre: 3 },
+            '65122': { nombre: 'Teoría General del Proceso', creditos: 2, requisitos: [], semestre: 3 },
+            '65119': { nombre: 'Teoría General del Trabajo Humano y Relación del Trabajo', creditos: 2, requisitos: [], semestre: 3 },
+            '60171': { nombre: 'Ética', creditos: 2, requisitos: ['60170'], semestre: 3 },
+
+            // CUARTO SEMESTRE
+            '65123': { nombre: 'Derecho Civil Obligaciones II', creditos: 2, requisitos: ['65116'], semestre: 4 },
+            '65126': { nombre: 'Derecho Comercial Sociedades', creditos: 3, requisitos: ['65118'], semestre: 4 },
+            '65124': { nombre: 'Derecho Constitucional Colombiano II', creditos: 2, requisitos: ['65117'], semestre: 4 },
+            '65128': { nombre: 'Derecho de la Familia, la Infancia y la Adolescencia', creditos: 3, requisitos: ['65111'], semestre: 4 },
+            '65130': { nombre: 'Derecho Penal General II', creditos: 2, requisitos: ['65120'], semestre: 4 },
+            '65127': { nombre: 'Derecho Procesal Civil I', creditos: 2, requisitos: [], semestre: 4 },
+            '65129': { nombre: 'Mecanismos Alternos de Conflictos', creditos: 2, requisitos: [], semestre: 4 },
+            '65125': { nombre: 'Relaciones y Conflictos Individuales de Trabajo', creditos: 2, requisitos: ['65119'], semestre: 4 },
+
+            // QUINTO SEMESTRE
+            '65131': { nombre: 'Contratos Civiles y Comerciales I', creditos: 2, requisitos: ['65116'], semestre: 5 },
+            '65133': { nombre: 'Derecho Administrativo General y Colombiano', creditos: 4, requisitos: ['65124'], semestre: 5 },
+            '65132': { nombre: 'Derecho Concursal', creditos: 2, requisitos: ['65126'], semestre: 5 },
+            '65137': { nombre: 'Derecho Penal Especial I', creditos: 2, requisitos: ['65130'], semestre: 5 },
+            '65135': { nombre: 'Derecho Procesal Civil II', creditos: 2, requisitos: ['65127'], semestre: 5 },
+            '65136': { nombre: 'Interpretación y Argumentación Jurídica I', creditos: 2, requisitos: ['60170'], semestre: 5 },
+            '65134': { nombre: 'Relaciones y Conflictos Colectivos de Trabajo', creditos: 3, requisitos: ['65125'], semestre: 5 },
+
+            // SEXTO SEMESTRE
+            '65138': { nombre: 'Contratos Civiles y Comerciales II', creditos: 2, requisitos: ['65131'], semestre: 6 },
+            '65145': { nombre: 'Derecho Administrativo Especial (Administrativo Laboral y Disciplinario)', creditos: 2, requisitos: ['65133'], semestre: 6 },
+            '65139': { nombre: 'Derecho Penal Especial II', creditos: 2, requisitos: ['65137'], semestre: 6 },
+            '65141': { nombre: 'Derecho Procesal Administrativo', creditos: 3, requisitos: ['65133'], semestre: 6 },
+            '65143': { nombre: 'Derecho Procesal Penal', creditos: 2, requisitos: [], semestre: 6 },
+            '65142': { nombre: 'Interpretación y Argumentación II', creditos: 2, requisitos: ['65136'], semestre: 6 },
+            '65144': { nombre: 'Resolución de Conflictos de Trabajo y Seguridad Social', creditos: 2, requisitos: ['65125'], semestre: 6 },
+            '65140': { nombre: 'Sistemas Integrales de Seguridad Social', creditos: 3, requisitos: [], semestre: 6 },
+
+            // SÉPTIMO SEMESTRE
+            '65147': { nombre: 'Consultorio Jurídico y Conciliación I', creditos: 2, requisitos: ['65135', '65143', '65141', '65139'], semestre: 7 },
+            '65149': { nombre: 'Derecho Ambiental', creditos: 2, requisitos: [], semestre: 7 },
+            '65150': { nombre: 'Derecho Comercial Títulos Valores', creditos: 2, requisitos: ['65132'], semestre: 7 },
+            '65148': { nombre: 'Derecho Internacional', creditos: 3, requisitos: ['65132'], semestre: 7 },
+            '65146': { nombre: 'Derecho Marítimo y Portuario', creditos: 3, requisitos: ['65138'], semestre: 7 },
+            '65152': { nombre: 'Derechos Humanos y Derecho Internacional Humanitario', creditos: 2, requisitos: [], semestre: 7 },
+            '65151': { nombre: 'Teoría de la Prueba', creditos: 2, requisitos: ['65135', '65143', '65141', '65139'], semestre: 7 },
+
+            // OCTAVO SEMESTRE
+            '65155': { nombre: 'Consultorio Jurídico y Conciliación II', creditos: 2, requisitos: ['65147'], semestre: 8 },
+            '65156': { nombre: 'Contratación Internacional', creditos: 2, requisitos: [], semestre: 8 },
+            '65158': { nombre: 'Criminología', creditos: 2, requisitos: ['65139'], semestre: 8 },
+            '65159': { nombre: 'Deontología Jurídica y Responsabilidad Profesional', creditos: 2, requisitos: ['60171'], semestre: 8 },
+            '65153': { nombre: 'Derecho Civil Sucesiones', creditos: 3, requisitos: ['65128'], semestre: 8 },
+            '65154': { nombre: 'Derecho Tributario', creditos: 2, requisitos: ['65133'], semestre: 8 },
+            '60172': { nombre: 'Filosofía del Derecho', creditos: 3, requisitos: ['65142'], semestre: 8 },
+            '65157': { nombre: 'Regímenes de la Administración Pública: Servicios Públicos', creditos: 2, requisitos: [], semestre: 8 },
+
+            // NOVENO SEMESTRE
+            '65160': { nombre: 'Consultorio Jurídico y Conciliación III', creditos: 2, requisitos: ['65155'], semestre: 9 },
+            '65902': { nombre: 'Electiva de Profundización (Ejercicio Autónomo I)', creditos: 3, requisitos: [], semestre: 9 },
+            '65903': { nombre: 'Electiva de Profundización (Gestión Judicial I)', creditos: 2, requisitos: [], semestre: 9 },
+            '65904': { nombre: 'Electiva de Profundización (Gestión Pública I)', creditos: 2, requisitos: [], semestre: 9 },
+            '65901': { nombre: 'Electiva de Profundización (Historia del Derecho)', creditos: 2, requisitos: [], semestre: 9 },
+            '65900': { nombre: 'Electiva de Profundización (Práctica y Clínica)', creditos: 3, requisitos: [], semestre: 9 },
+            '65161': { nombre: 'Seminario de Investigación I', creditos: 2, requisitos: [], semestre: 9 },
+
+            // DECIMO SEMESTRE
+            '65162': { nombre: 'Consultorio Jurídico y Conciliación IV', creditos: 2, requisitos: [], semestre: 10 },
+            '65908': { nombre: 'Electiva de Profundización (Eje Transversal)', creditos: 3, requisitos: [], semestre: 10 },
+            '65905': { nombre: 'Electiva de Profundización (Ejercicio Autónomo II)', creditos: 2, requisitos: [], semestre: 10 },
+            '65909': { nombre: 'Electiva de Profundización en Filosofía del Derecho', creditos: 2, requisitos: [], semestre: 10 },
+            '65906': { nombre: 'Electiva de profundización (Gestión Judicial II)', creditos: 2, requisitos: [], semestre: 10 },
+            '65907': { nombre: 'Electiva de profundización (Gestión Pública II)', creditos: 2, requisitos: [], semestre: 10 },
+            '65163': { nombre: 'Seminario de Investigación II', creditos: 2, requisitos: [], semestre: 10 }
+        };
+
+        // Estado de las materias (aprobadas o no)
+        let estadoMaterias = {};
+
+        // Nombres de los semestres
+        const nombresSemestres = {
+            1: 'PRIMER SEMESTRE',
+            2: 'SEGUNDO SEMESTRE',
+            3: 'TERCER SEMESTRE',
+            4: 'CUARTO SEMESTRE',
+            5: 'QUINTO SEMESTRE',
+            6: 'SEXTO SEMESTRE',
+            7: 'SÉPTIMO SEMESTRE',
+            8: 'OCTAVO SEMESTRE',
+            9: 'NOVENO SEMESTRE',
+            10: 'DÉCIMO SEMESTRE'
+        };
+
+        // Función para verificar si una materia está disponible
+        function materiaDisponible(codigo) {
+            const materia = materias[codigo];
+            if (!materia) return false;
+            
+            // Si no tiene requisitos, está disponible
+            if (materia.requisitos.length === 0) return true;
+            
+            // Verificar que todos los requisitos estén aprobados
+            return materia.requisitos.every(req => estadoMaterias[req] === true);
+        }
+
+        // Función para generar la malla
+        function generarMalla() {
+            const container = document.getElementById('mallaContainer');
+            container.innerHTML = '';
+
+            // Agrupar materias por semestre
+            const materiasPorSemestre = {};
+            
+            Object.keys(materias).forEach(codigo => {
+                const semestre = materias[codigo].semestre;
+                if (!materiasPorSemestre[semestre]) {
+                    materiasPorSemestre[semestre] = [];
+                }
+                materiasPorSemestre[semestre].push(codigo);
+            });
+
+            // Crear elementos para cada semestre
+            for (let i = 1; i <= 10; i++) {
+                if (materiasPorSemestre[i]) {
+                    const semestreDiv = document.createElement('div');
+                    semestreDiv.className = 'semestre';
+                    
+                    const titulo = document.createElement('h2');
+                    titulo.textContent = nombresSemestres[i];
+                    semestreDiv.appendChild(titulo);
+
+                    materiasPorSemestre[i].forEach(codigo => {
+                        const materia = materias[codigo];
+                        const materiaDiv = document.createElement('div');
+                        materiaDiv.className = 'materia';
+                        materiaDiv.onclick = () => toggleMateria(codigo);
+
+                        const info = document.createElement('div');
+                        info.className = 'materia-info';
+                        
+                        const codigoSpan = document.createElement('span');
+                        codigoSpan.className = 'materia-codigo';
+                        codigoSpan.textContent = codigo;
+                        
+                        const creditosSpan = document.createElement('span');
+                        creditosSpan.className = 'materia-creditos';
+                        creditosSpan.textContent = `${materia.creditos} créditos`;
+                        
+                        info.appendChild(codigoSpan);
+                        info.appendChild(creditosSpan);
+
+                        const nombre = document.createElement('div');
+                        nombre.className = 'materia-nombre';
+                        nombre.textContent = materia.nombre;
+
+                        const requisitos = document.createElement('div');
+                        requisitos.className = 'materia-requisitos';
+                        if (materia.requisitos.length > 0) {
+                            requisitos.textContent = `Requisitos: ${materia.requisitos.join(', ')}`;
+                        }
+
+                        materiaDiv.appendChild(info);
+                        materiaDiv.appendChild(nombre);
+                        if (materia.requisitos.length > 0) {
+                            materiaDiv.appendChild(requisitos);
+                        }
+
+                        semestreDiv.appendChild(materiaDiv);
+                    });
+
+                    container.appendChild(semestreDiv);
+                }
+            }
+
+            actualizarEstados();
+        }
+
+        // Función para cambiar el estado de una materia
+        function toggleMateria(codigo) {
+            if (estadoMaterias[codigo]) {
+                // Si está aprobada, desaprobar
+                estadoMaterias[codigo] = false;
+            } else if (materiaDisponible(codigo)) {
+                // Si está disponible, aprobar
+                estadoMaterias[codigo] = true;
+            }
+            
+            actualizarEstados();
+        }
+
+        // Función para actualizar los estados visuales
+        function actualizarEstados() {
+            const materiasElements = document.querySelectorAll('.materia');
+            let aprobadas = 0;
+            let disponibles = 0;
+            let bloqueadas = 0;
+            let totalCreditos = 0;
+
+            materiasElements.forEach(element => {
+                const codigo = element.querySelector('.materia-codigo').textContent;
+                const materia = materias[codigo];
+                
+                // Remover todas las clases de estado
+                element.classList.remove('aprobada', 'disponible', 'bloqueada');
+                
+                if (estadoMaterias[codigo]) {
+                    element.classList.add('aprobada');
+                    aprobadas++;
+                    totalCreditos += materia.creditos;
+                } else if (materiaDisponible(codigo)) {
+                    element.classList.add('disponible');
+                    disponibles++;
+                } else {
+                    element.classList.add('bloqueada');
+                    bloqueadas++;
+                }
+            });
+
+            // Actualizar estadísticas
+            document.getElementById('aprobadas').textContent = aprobadas;
+            document.getElementById('disponibles').textContent = disponibles;
+            document.getElementById('bloqueadas').textContent = bloqueadas;
+            document.getElementById('creditos').textContent = totalCreditos;
+
+            // Actualizar barra de progreso
+            const totalMaterias = Object.keys(materias).length;
+            const progreso = (aprobadas / totalMaterias) * 100;
+            document.getElementById('progressBar').style.width = progreso + '%';
+        }
+
+        // Función para reiniciar el progreso
+        function resetProgress() {
+            if (confirm('¿Estás seguro de que quieres reiniciar todo el progreso?')) {
+                estadoMaterias = {};
+                actualizarEstados();
+            }
+        }
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            generarMalla();
+        });
+    </script>
+</body>
+</html>
